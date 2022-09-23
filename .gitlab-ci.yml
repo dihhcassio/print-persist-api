@@ -1,0 +1,64 @@
+# Gitlab CI/CD criado por Tácio Andrade
+# Esse .gitlab-ci.yml executa os seguintes processos:
+# build = Criação da imagem do docker e sobe para o repositório do gitlab
+# test = Ainda em criação
+# deploy = Faz o login via ssh no servidor e sobe a aplicação
+
+stages:
+  - build
+#  - test
+  - deploy
+
+before_script:
+    - apk add openssh-client
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+
+# Cria a imagem docker de produção e sobe para o repository
+build:
+  image: docker:19.03.12
+  only:
+    - master
+  stage: build
+  services:
+    - docker:19.03.12-dind
+  script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - echo "$ENV_PROD" > .env
+    - docker build -t registry.gitlab.com/simple-gestao-municipal/simple-panorama-do-governo-api:latest .
+    - docker push registry.gitlab.com/simple-gestao-municipal/simple-panorama-do-governo-api:latest
+
+# Cria a imagem docker de desenvolvimento e sobe para o repository
+build-dev:
+  image: docker:19.03.12
+  only:
+    - homolog
+  stage: build
+  services:
+    - docker:19.03.12-dind
+  script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - echo "$ENV_HOMOLOG" > .env
+    - ls -lha 
+    - docker build -t registry.gitlab.com/simple-gestao-municipal/simple-panorama-do-governo-api:dev  .
+    - docker push registry.gitlab.com/simple-gestao-municipal/simple-panorama-do-governo-api:dev 
+
+# Faz deploy da aplicação em produção
+deploy:
+  stage: deploy
+  image: alpine
+  only:
+    - master
+  script:
+    - ssh -o StrictHostKeyChecking=no tacio@ftp.digitalfile.camaleaosoft.com "docker rm simple-panorama-governo-api -f && docker rmi registry.gitlab.com/$CI_PROJECT_PATH:latest && docker run --name simple-panorama-governo-api --mount src=/home/node/paranorama-governo-uploads,target=/usr/src/app/uploads,type=bind --restart unless-stopped -d -p 6010:3000 registry.gitlab.com/simple-gestao-municipal/simple-panorama-do-governo-api:latest"
+
+# Faz deploy da aplicação em homologação
+deploy-dev:
+  stage: deploy
+  image: alpine
+  only:
+    - homolog
+  script:
+    - ssh -o StrictHostKeyChecking=no tacio@ftp.digitalfile.camaleaosoft.com "docker rm simple-panorama-governo-api-dev -f && docker rmi registry.gitlab.com/$CI_PROJECT_PATH:dev && docker run --name simple-panorama-governo-api-dev --mount src=/home/node/paranorama-governo-uploads,target=/usr/src/app/uploads,type=bind --restart unless-stopped -d -p 6011:3000 registry.gitlab.com/simple-gestao-municipal/simple-panorama-do-governo-api:dev "
