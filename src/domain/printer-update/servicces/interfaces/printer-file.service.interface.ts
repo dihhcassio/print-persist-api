@@ -2,5 +2,5 @@ import { PrinterFileSaveReturnDto } from "src/domain/dtos/printer-file-save-retu
 import { PrinterFile } from "../../models/printer-file"
 
 export interface IPrinterFileService{
-    savePrinterFile(printerFile: PrinterFile):PromiseLike<PrinterFileSaveReturnDto>;
+    savePrinterFile(printerFile: PrinterFile);
 }

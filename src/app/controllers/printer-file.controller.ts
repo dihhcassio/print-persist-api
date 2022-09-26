@@ -1,4 +1,5 @@
-import { Body, Controller, Get, Inject, ParseUUIDPipe, Post, Query, UseGuards} from "@nestjs/common";
+import { Body, ClassSerializerInterceptor, Controller, Get, Inject, ParseUUIDPipe, Post, Query, UseGuards, UseInterceptors} from "@nestjs/common";
+import { ClientProxy } from "@nestjs/microservices"
 import { ApiBearerAuth, ApiQuery, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { PrinterFileSaveDto } from "src/domain/dtos/pinter-file-save.dto"
 import { PrinterFileSaveReturnDto } from "src/domain/dtos/printer-file-save-return.dto"

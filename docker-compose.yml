@@ -1,38 +1,22 @@
 version: '3.8'
 
 services:
-  mysql:
-    image: mysql:5.7
-    container_name: mysql-cml-bets
+   rabbitmq1:
+    image: rabbitmq:3-management
+    container_name: rabbitmq1
+    hostname: rabbitmq1
+    ports:
+      - "8080:15672"
+    network_mode: "bridge"
+    volumes:
+     - $PWD/storage/rabbitmq1:/var/lib/rabbitmq
     environment:
-      MYSQL_DATABASE: 'cml-bets'
-      MYSQL_ROOT_PASSWORD: 'root123'
-    ports:
-      - '3306:3306'
-    networks:
-      - app-network
-    volumes:
-      - mysql-db:/var/lib/mysql
-
-  cml_bets-api:
-    container_name: cml_bets-api
-    build:
-      context: .
-      target: development
-    volumes:
-      - .:/usr/src/app
-      - /usr/src/app/node_modules
-    ports:
-      - 3000:3000
-    command: npm run start:dev
-    networks:
-      - app-network
-    depends_on:
-      - mysql
+     - RABBITMQ_ERLANG_COOKIE=This_is_my_secret_phrase
+     - RABBITMQ_DEFAULT_USER=mqadmin
+     - RABBITMQ_DEFAULT_PASS=Admin123XX_
+     - CLUSTERED=true
 
 networks:
   app-network:
     driver: bridge
-
-volumes:
-  mysql-db:
+    

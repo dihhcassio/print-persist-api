@@ -49,7 +49,7 @@ import { ClientProxyFactory, Transport } from '@nestjs/microservices';
         })
       },
       inject: [ConfigService],
-    }
+    },
     { provide: 'IPrinterFileService', useClass: PrinterFileService, },
   ],
 })
